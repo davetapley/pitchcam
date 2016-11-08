@@ -45,6 +45,38 @@ colors = {}
   colors[color] = color_attrs
 end
 
+WorldTransform = Struct.new :scale, :rotation
+
+start_origin = CvPoint.new 200, 300
+world_transform = WorldTransform.new 110, 0
+
+source_window.set_trackbar("origin x", 640, start_origin.x)  { |v| start_origin.x = v }
+source_window.set_trackbar("origin y", 640, start_origin.y)  { |v| start_origin.y = v }
+source_window.set_trackbar("scale", 200, world_transform.scale)  { |v| world_transform.scale = v }
+
+Segment = Struct.new :world_origin, :world_transform do
+  def render(canvas)
+    p0 = CvPoint2D32f.new 0, 0
+    p1 = CvPoint2D32f.new 0.7, 0
+    p2 = CvPoint2D32f.new 0.7, 1
+    p3 = CvPoint2D32f.new 0, 1
+    [[p0, p1], [p1, p2], [p2, p3], [p3, p0]].each do |from, to|
+      canvas.line! point_to_world(from), point_to_world(to), thickness: 2
+    end
+  end
+
+  private
+
+  def point_to_world(point)
+    world_scale = world_transform.scale
+    x = (point.x * world_scale) + world_origin.x
+    y = (point.y * world_scale) + world_origin.y
+    CvPoint.new x, y
+  end
+end
+
+start_segment = Segment.new start_origin, world_transform
+
 loop do
   image = capture.query
   result = image.clone
@@ -65,6 +97,8 @@ loop do
       end
     end
   end
+
+  start_segment.render result
 
   source_window.show result
   GUI::wait_key(1)
