@@ -55,12 +55,14 @@ loop do
     color_map = hsv.in_range(color_attrs[:low], color_attrs[:high]).dilate(nil, 2)
     color_attrs[:window].show color_map if color_window_on
 
-    hough = color_map.hough_circles CV_HOUGH_GRADIENT, 2, 5, 200, 40
 
-    if hough.size > 0
-      circle = hough.first
-      cv_color = CvColor::const_get color.capitalize
-      result.circle! circle.center, circle.radius, thickness: 3, color: cv_color
+    unless color_window_on
+      hough = color_map.hough_circles CV_HOUGH_GRADIENT, 2, 5, 200, 40
+      if hough.size > 0
+        circle = hough.first
+        cv_color = CvColor::const_get color.capitalize
+        result.circle! circle.center, circle.radius, thickness: 3, color: cv_color
+      end
     end
   end
 
