@@ -1,11 +1,10 @@
 #!/usr/bin/env ruby
-# convexhull.rb
-# Draw contours and convexity defect points to captured image
-require "rubygems"
-require "opencv"
+
+require 'rubygems'
 require 'yaml'
 require 'ruby_dig'
 
+require "opencv"
 include OpenCV
 
 @config = YAML.load_file 'config.yml'
@@ -47,8 +46,8 @@ end
 
 WorldTransform = Struct.new :scale, :rotation
 
-start_origin = CvPoint.new 200, 300
-world_transform = WorldTransform.new 110, 0
+start_origin = CvPoint.new 204, 240
+world_transform = WorldTransform.new 161, 0
 
 source_window.set_trackbar("origin x", 640, start_origin.x)  { |v| start_origin.x = v }
 source_window.set_trackbar("origin y", 640, start_origin.y)  { |v| start_origin.y = v }
@@ -63,6 +62,18 @@ Segment = Struct.new :world_origin, :world_transform do
     [[p0, p1], [p1, p2], [p2, p3], [p3, p0]].each do |from, to|
       canvas.line! point_to_world(from), point_to_world(to), thickness: 2
     end
+  end
+
+  def inside?(point)
+    world_scale = world_transform.scale
+
+    x_lo = (0 * world_scale) + world_origin.x
+    x_hi = (0.7 * world_scale) + world_origin.x
+    return unless x_lo < point.x && point.x < x_hi
+
+    y_lo = (0 * world_scale) + world_origin.y
+    y_hi = (1 * world_scale) + world_origin.y
+    y_lo < point.y && point.y < y_hi
   end
 
   private
@@ -93,7 +104,14 @@ loop do
       if hough.size > 0
         circle = hough.first
         cv_color = CvColor::const_get color.capitalize
-        result.circle! circle.center, circle.radius, thickness: 3, color: cv_color
+
+        on_track = start_segment.inside? circle.center
+        if on_track
+          result.circle! circle.center, circle.radius, thickness: 3, color: cv_color
+          result.circle! circle.center, 1, thickness: 10, color: cv_color
+        else
+          result.circle! circle.center, circle.radius, thickness: 1, color: cv_color
+        end
       end
     end
   end
