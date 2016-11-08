@@ -11,21 +11,33 @@ defaults:
 colors:
   red:
     hue:
-      low: 0
-      high: 10
+      low: 173
+      high: 190
+    saturation:
+      low: 110
+      high: 255
+    value:
+      low: 172
+      high: 255
 
   green:
     hue:
-      low: 31
-      high: 92
+      low: 54
+      high: 97
     saturation:
-      low: 92
-      high: 123
+      low: 60
+      high: 255
     value:
-      low: 116
-      high: 198
+      low: 118
+      high: 255
 
   blue:
     hue:
       low: 86
       high: 142
+    saturation:
+      low: 125
+      high: 255
+    value:
+      low: 118
+      high: 255
