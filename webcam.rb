@@ -12,7 +12,9 @@ include OpenCV
 color_window_on = @config['color_window_on']
 
 source_window = GUI::Window.new 'source'
-capture = CvCapture::open
+
+# 864 x 480
+capture = CvCapture::open 1
 
 def get_attr(color, name, kind)
   color_attr = @config.dig 'colors', color, name, kind
@@ -46,8 +48,8 @@ end
 
 WorldTransform = Struct.new :scale, :rotation
 
-start_origin = CvPoint.new 204, 240
-world_transform = WorldTransform.new 161, 0
+start_origin = CvPoint.new 212, 163
+world_transform = WorldTransform.new 153, 0
 
 source_window.set_trackbar("origin x", 640, start_origin.x)  { |v| start_origin.x = v }
 source_window.set_trackbar("origin y", 640, start_origin.y)  { |v| start_origin.y = v }
@@ -56,8 +58,8 @@ source_window.set_trackbar("scale", 200, world_transform.scale)  { |v| world_tra
 Segment = Struct.new :world_origin, :world_transform do
   def render(canvas)
     p0 = CvPoint2D32f.new 0, 0
-    p1 = CvPoint2D32f.new 0.7, 0
-    p2 = CvPoint2D32f.new 0.7, 1
+    p1 = CvPoint2D32f.new 0.63, 0
+    p2 = CvPoint2D32f.new 0.63, 1
     p3 = CvPoint2D32f.new 0, 1
     [[p0, p1], [p1, p2], [p2, p3], [p3, p0]].each do |from, to|
       canvas.line! point_to_world(from), point_to_world(to), thickness: 2
