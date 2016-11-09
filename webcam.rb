@@ -90,6 +90,9 @@ end
 
 start_segment = Segment.new start_origin, world_transform
 
+car_radius = 0.2
+car_radius_world = car_radius * world_transform.scale
+
 loop do
   image = capture.query
   result = image.clone
@@ -103,6 +106,7 @@ loop do
 
     unless color_window_on
       hough = color_map.hough_circles CV_HOUGH_GRADIENT, 2, 5, 200, 40
+      hough = hough.to_a.reject { |circle| circle.radius > car_radius_world * 1.5 }
       if hough.size > 0
         circle = hough.first
         cv_color = CvColor::const_get color.capitalize
