@@ -22,6 +22,33 @@ def get_attr(color, name, kind)
   color_attr || default_attr
 end
 
+WorldTransform = Struct.new :scale, :rotation
+world_transform = WorldTransform.new 153, 0
+
+class Car
+  RADIUS = 0.08
+
+  attr_reader :name, :positions
+
+  def initialize(name)
+    @name = name
+    @positions = []
+  end
+
+  def update_world_position(point)
+    positions << point if positions.empty?
+
+    delta = Math.sqrt((latest_world_position.x - point.x).abs + (latest_world_position.y - point.y).abs)
+
+    return unless delta > 2
+    positions << point
+  end
+
+  def latest_world_position
+    positions.last
+  end
+end
+
 colors = {}
 @config['colors'].each do |color, attrs|
   color_attrs = {}
@@ -43,13 +70,12 @@ colors = {}
     color_attrs[:window] = color_window
   end
 
+  color_attrs[:car] = Car.new color
+
   colors[color] = color_attrs
 end
 
-WorldTransform = Struct.new :scale, :rotation
-
 start_origin = CvPoint.new 212, 163
-world_transform = WorldTransform.new 153, 0
 
 source_window.set_trackbar("origin x", 640, start_origin.x)  { |v| start_origin.x = v }
 source_window.set_trackbar("origin y", 640, start_origin.y)  { |v| start_origin.y = v }
@@ -118,8 +144,8 @@ end
 
 track = Track.new start_origin, world_transform
 
-car_radius = 0.2
-car_radius_world = car_radius * world_transform.scale
+
+car_radius_world = Car::RADIUS * world_transform.scale
 
 loop do
   image = capture.query
@@ -131,22 +157,25 @@ loop do
     color_map = hsv.in_range(color_attrs[:low], color_attrs[:high]).dilate(nil, 2)
     color_attrs[:window].show color_map if color_window_on
 
+    car = color_attrs[:car]
+
+    cv_color = CvColor::const_get color.capitalize
 
     unless color_window_on
       hough = color_map.hough_circles CV_HOUGH_GRADIENT, 2, 5, 200, 40
       hough = hough.to_a.reject { |circle| circle.radius > car_radius_world * 1.5 }
       if hough.size > 0
         circle = hough.first
-        cv_color = CvColor::const_get color.capitalize
+
+        result.circle! circle.center, circle.radius, thickness: 1, color: cv_color
 
         on_track = track.inside? circle.center
-        if on_track
-          result.circle! circle.center, circle.radius, thickness: 3, color: cv_color
-          result.circle! circle.center, 1, thickness: 10, color: cv_color
-        else
-          result.circle! circle.center, circle.radius, thickness: 1, color: cv_color
-        end
+        car.update_world_position circle.center if on_track
       end
+    end
+
+    unless car.latest_world_position.nil?
+      result.circle! car.latest_world_position, car_radius_world, thickness: 3, color: cv_color
     end
   end
 
