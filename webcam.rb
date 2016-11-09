@@ -55,15 +55,16 @@ source_window.set_trackbar("origin x", 640, start_origin.x)  { |v| start_origin.
 source_window.set_trackbar("origin y", 640, start_origin.y)  { |v| start_origin.y = v }
 source_window.set_trackbar("scale", 200, world_transform.scale)  { |v| world_transform.scale = v }
 
-Segment = Struct.new :world_origin, :world_transform do
+Segment = Struct.new :position, :world_origin, :world_transform do
   def render(canvas)
     p0 = CvPoint2D32f.new 0, 0
     p1 = CvPoint2D32f.new 0.63, 0
     p2 = CvPoint2D32f.new 0.63, 1
     p3 = CvPoint2D32f.new 0, 1
     [[p0, p1], [p1, p2], [p2, p3], [p3, p0]].each do |from, to|
-      canvas.line! point_to_world(from), point_to_world(to), thickness: 2
+      canvas.line! point_to_world(from), point_to_world(to), thickness: 1, color:CvColor::White
     end
+    canvas.put_text!(position.to_s, point_to_world(p3), CvFont.new(:simplex), CvColor::White)
   end
 
   def inside?(point)
@@ -78,6 +79,11 @@ Segment = Struct.new :world_origin, :world_transform do
     y_lo < point.y && point.y < y_hi
   end
 
+  def next_world_origin
+    p = CvPoint2D32f.new 0, 1
+    point_to_world p
+  end
+
   private
 
   def point_to_world(point)
@@ -88,7 +94,29 @@ Segment = Struct.new :world_origin, :world_transform do
   end
 end
 
-start_segment = Segment.new start_origin, world_transform
+class Track
+  attr_reader :segments
+
+  def initialize(start_origin, world_transform)
+    @segments = [Segment.new(0, start_origin, world_transform)]
+    prev_segment = segments.first
+
+    1.times.each_with_index do |index|
+      origin = prev_segment.next_world_origin
+      segments << Segment.new(index + 1, origin, world_transform)
+    end
+  end
+
+  def inside?(point)
+    segments.any? { |segment| segment.inside? point }
+  end
+
+  def render(canvas)
+    segments.each { |segment| segment.render canvas }
+  end
+end
+
+track = Track.new start_origin, world_transform
 
 car_radius = 0.2
 car_radius_world = car_radius * world_transform.scale
@@ -111,7 +139,7 @@ loop do
         circle = hough.first
         cv_color = CvColor::const_get color.capitalize
 
-        on_track = start_segment.inside? circle.center
+        on_track = track.inside? circle.center
         if on_track
           result.circle! circle.center, circle.radius, thickness: 3, color: cv_color
           result.circle! circle.center, 1, thickness: 10, color: cv_color
@@ -122,7 +150,7 @@ loop do
     end
   end
 
-  start_segment.render result
+  track.render result
 
   source_window.show result
   GUI::wait_key(1)
