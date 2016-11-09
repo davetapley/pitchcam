@@ -1,0 +1,43 @@
+color_window_on: false
+
+defaults:
+  saturation:
+    low: 102
+    high: 255
+  value:
+    low: 178
+    high: 255
+
+colors:
+  red:
+    hue:
+      low: 173
+      high: 190
+    saturation:
+      low: 110
+      high: 255
+    value:
+      low: 172
+      high: 255
+
+  green:
+    hue:
+      low: 54
+      high: 97
+    saturation:
+      low: 60
+      high: 255
+    value:
+      low: 118
+      high: 255
+
+  blue:
+    hue:
+      low: 86
+      high: 142
+    saturation:
+      low: 125
+      high: 255
+    value:
+      low: 118
+      high: 255
