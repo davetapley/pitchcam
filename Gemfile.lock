@@ -1,0 +1,15 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ruby-opencv (0.0.17)
+    ruby_dig (0.0.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  ruby-opencv
+  ruby_dig
+
+BUNDLED WITH
+   1.13.6
