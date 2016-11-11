@@ -9,15 +9,19 @@ class Car
   end
 
   def update_world_position(point)
-    positions << point if positions.empty?
+    new_world_position! point if positions.empty?
 
     delta = Math.sqrt((latest_world_position.x - point.x).abs + (latest_world_position.y - point.y).abs)
-
-    return unless delta > 2
-    positions << point
+    new_world_position! point if delta > 2
   end
 
   def latest_world_position
     positions.last
+  end
+
+  private
+
+  def new_world_position!(point)
+    positions << point
   end
 end

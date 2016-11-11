@@ -21,6 +21,17 @@ class Config
     load_colors
   end
 
+  def cars
+    colors.map { |_, attrs| attrs[:car] }
+  end
+
+  private
+
+  def get_attr(color, name, kind)
+    color_attr = @config.dig 'colors', color, name, kind
+    default_attr = @config.dig('defaults', name, kind)
+    color_attr || default_attr
+  end
 
   def load_colors
     @colors = {}
@@ -33,13 +44,5 @@ class Config
 
       @colors[color] = color_attrs
     end
-  end
-
-  private
-
-  def get_attr(color, name, kind)
-    color_attr = @config.dig 'colors', color, name, kind
-    default_attr = @config.dig('defaults', name, kind)
-    color_attr || default_attr
   end
 end
