@@ -27,6 +27,13 @@ Segment = Struct.new :position, :world_origin, :world_transform do
     point_to_world p
   end
 
+  def position_from_world(point)
+    world_scale = world_transform.scale
+    p = (point.y - world_origin.y) / world_scale # progress
+    d = (point.x - world_origin.x) / world_scale # drift
+    [p, d]
+  end
+
   private
 
   def point_to_world(point)

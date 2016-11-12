@@ -21,4 +21,14 @@ class Track
   def render(canvas)
     segments.each { |segment| segment.render canvas }
   end
+
+  def position_from_world(point)
+    index = segments.find_index { |segment| segment.inside? point }
+    return nil unless index
+
+    segment_progress, drift = segments[index].position_from_world point
+    progress = index + segment_progress
+
+    [progress, drift]
+  end
 end

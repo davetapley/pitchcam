@@ -7,6 +7,8 @@ ImageProcessor = Struct.new :world_transform, :colors, :track, :source_window do
 
     hsv = image.BGR2HSV
 
+    dirty_cars = []
+
     colors.each do |color, color_attrs|
       color_map = hsv.in_range(color_attrs[:low], color_attrs[:high]).dilate(nil, 2)
 
@@ -26,7 +28,8 @@ ImageProcessor = Struct.new :world_transform, :colors, :track, :source_window do
           result.circle! circle.center, circle.radius, thickness: 1, color: cv_color
 
           on_track = track.inside? circle.center
-          car.update_world_position circle.center if on_track
+          moved = car.update_world_position circle.center if on_track
+          dirty_cars << car if moved
         end
 
         unless car.latest_world_position.nil?
@@ -38,5 +41,7 @@ ImageProcessor = Struct.new :world_transform, :colors, :track, :source_window do
     track.render result
 
     source_window.show result
+
+    dirty_cars
   end
 end
