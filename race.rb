@@ -48,20 +48,22 @@ class Race
     end
   end
 
-  attr_reader :track, :entrants
+  attr_reader :track, :colors_entrants, :entrants
 
-  def initialize(track, cars)
+  def initialize(track, colors)
     @track = track
-    @entrants = Hash[cars.map { |car| [car, Entrant.new(car.name)] }]
+
+    @colors_entrants = Hash[colors.map { |color| [color, Entrant.new(color)] }]
+    @entrants = colors_entrants.values
+
     @current_idx = 0
-    entrants.first.last.start_turn
+    entrants.first.start_turn
   end
 
-  def update(dirty_cars)
-    dirty_cars.each do |car|
-      track_position = track.position_from_world car.latest_world_position
+  def update(dirty_colors)
+    dirty_colors.each do |color, track_position|
 
-      entrant = entrants[car]
+      entrant = colors_entrants[color]
       puts "#{entrant.name} #{track_position}"
 
       turn_finished = entrant.update track_position
@@ -75,12 +77,11 @@ class Race
   end
 
   def ranking
-    return unless entrants.all? { |_, entrant| entrant.state == :racing }
+    return unless entrants.all? { |entrant| entrant.state == :racing }
 
-    entrants.to_a.sort_by do |car, entrant|
+    entrants.sort_by do |entrant|
       entrant.track_position.first
-    end.reverse.each_with_index do |car_entrant, idx|
-      _car, entrant = car_entrant
+    end.reverse.each_with_index do |entrant, idx|
       puts "#{idx + 1} #{entrant.name} #{ entrant.track_position.first }"
     end
   end

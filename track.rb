@@ -1,9 +1,13 @@
 require_relative 'segment'
 
 class Track
-  attr_reader :segments
+  attr_reader :segments, :car_radius_world
+
+  CARD_RADIUS_TRACK = 0.8
 
   def initialize(world_transform)
+    @car_radius_world = CARD_RADIUS_TRACK * world_transform.scale
+
     start_origin = world_transform.origin
     @segments = [Segment.new(0, start_origin, world_transform)]
     prev_segment = segments.first

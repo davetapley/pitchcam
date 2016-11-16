@@ -1,12 +1,11 @@
 require 'yaml'
 require 'ruby_dig'
-require_relative 'car'
 
 WorldTransform = Struct.new :origin, :scale, :rotation
 
 class Config
 
-  attr_reader :world_transform, :colors, :color_window_on
+  attr_reader :world_transform, :colors_attrs, :color_window_on
 
   def initialize
     @config = YAML.load_file 'config.yml'
@@ -21,8 +20,8 @@ class Config
     load_colors
   end
 
-  def cars
-    colors.map { |_, attrs| attrs[:car] }
+  def colors
+    colors_attrs.keys
   end
 
   private
@@ -34,15 +33,13 @@ class Config
   end
 
   def load_colors
-    @colors = {}
+    @colors_attrs = {}
     @config['colors'].each do |color, attrs|
       color_attrs = {}
       color_attrs[:low] = CvScalar.new get_attr(color, 'hue', 'low'), get_attr(color, 'saturation', 'low'), get_attr(color, 'value', 'low')
       color_attrs[:high] = CvScalar.new get_attr(color, 'hue', 'high'), get_attr(color, 'saturation', 'high'), get_attr(color, 'value', 'high')
 
-      color_attrs[:car] = Car.new color
-
-      @colors[color] = color_attrs
+      @colors_attrs[color] = color_attrs
     end
   end
 end
