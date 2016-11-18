@@ -1,13 +1,14 @@
 Segment = Struct.new :position, :world_origin, :world_transform do
-  def render(canvas)
+  WIDTH = 0.63
+  def render_to(canvas)
     p0 = CvPoint2D32f.new 0, 0
-    p1 = CvPoint2D32f.new 0.63, 0
-    p2 = CvPoint2D32f.new 0.63, 1
+    p1 = CvPoint2D32f.new WIDTH, 0
+    p2 = CvPoint2D32f.new WIDTH, 1
     p3 = CvPoint2D32f.new 0, 1
     [[p0, p1], [p1, p2], [p2, p3], [p3, p0]].each do |from, to|
-      canvas.line! point_to_world(from), point_to_world(to), thickness: 1, color:CvColor::White
+      canvas.line! local_to_world(from), local_to_world(to), thickness: 1, color:CvColor::White
     end
-    canvas.put_text!(position.to_s, point_to_world(p3), CvFont.new(:simplex), CvColor::White)
+    canvas.put_text!(position.to_s, local_to_world(p3), CvFont.new(:simplex), CvColor::White)
   end
 
   def inside?(point)
@@ -24,19 +25,27 @@ Segment = Struct.new :position, :world_origin, :world_transform do
 
   def next_world_origin
     p = CvPoint2D32f.new 0, 1
-    point_to_world p
+    local_to_world p
   end
 
   def position_from_world(point)
     world_scale = world_transform.scale
     p = (point.y - world_origin.y) / world_scale # progress
-    d = (point.x - world_origin.x) / world_scale # drift
+    d = ((point.x - world_origin.x) / world_scale) / WIDTH # drift
     [p, d]
+  end
+
+  def world_from_position(pos)
+    p = pos.first
+    d = pos.last
+
+    local_point = CvPoint2D32f.new (d * WIDTH), p
+    local_to_world local_point
   end
 
   private
 
-  def point_to_world(point)
+  def local_to_world(point)
     world_scale = world_transform.scale
     x = (point.x * world_scale) + world_origin.x
     y = (point.y * world_scale) + world_origin.y

@@ -3,10 +3,10 @@ require_relative 'segment'
 class Track
   attr_reader :segments, :car_radius_world
 
-  CARD_RADIUS_TRACK = 0.8
+  CAR_RADIUS_TRACK = 0.08
 
   def initialize(world_transform)
-    @car_radius_world = CARD_RADIUS_TRACK * world_transform.scale
+    @car_radius_world = CAR_RADIUS_TRACK * world_transform.scale
 
     start_origin = world_transform.origin
     @segments = [Segment.new(0, start_origin, world_transform)]
@@ -22,8 +22,8 @@ class Track
     segments.any? { |segment| segment.inside? point }
   end
 
-  def render(canvas)
-    segments.each { |segment| segment.render canvas }
+  def render_to(canvas)
+    segments.each { |segment| segment.render_to canvas }
   end
 
   def position_from_world(point)
@@ -34,5 +34,10 @@ class Track
     progress = index + segment_progress
 
     [progress, drift]
+  end
+
+  def world_from_position(position)
+    progress = position.first
+    segments[progress.floor].world_from_position position
   end
 end

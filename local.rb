@@ -17,13 +17,11 @@ config = Config.new
 include DevUI
 
 source_window = GUI::Window.new 'source'
-# add_world_transform_trackbars source_window
-color_windows = add_color_windows config.colors if config.color_window_on
-
+add_world_transform_trackbars source_window, config.world_transform
 
 track = Track.new config.world_transform
-image_processor = ImageProcessor.new track, source_window, config.colors_attrs, color_windows
-race = Race.new track, config.colors
+image_processor = ImageProcessor.new track, config.colors
+race = Race.new track, config.color_names
 
 # 864 x 480
 capture = CvCapture::open 0
@@ -33,6 +31,7 @@ loop do
 
   dirty_colors = image_processor.handle_image image
   race.update dirty_colors if dirty_colors.any?
+  render_dev_overlay race, source_window, image, dirty_colors, config.colors, config.color_window_on
 
-  GUI::wait_key(1)
+  GUI::wait_key 1
 end

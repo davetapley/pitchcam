@@ -6,7 +6,11 @@ class Race
       @name = name
       @state = :pre_start
       @is_turn = false
-      @track_position = [0, 0]
+      @track_position = nil
+    end
+
+    def on_track?
+      !track_position.nil?
     end
 
     def start_turn
@@ -62,14 +66,11 @@ class Race
 
   def update(dirty_colors)
     dirty_colors.each do |color, track_position|
-
       entrant = colors_entrants[color]
-      puts "#{entrant.name} #{track_position}"
-
       turn_finished = entrant.update track_position
       if turn_finished
         @current_idx = (@current_idx + 1) % entrants.size
-        entrants.to_a[@current_idx].last.start_turn
+        entrants[@current_idx].start_turn
       end
     end
 

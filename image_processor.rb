@@ -1,65 +1,56 @@
 class ImageProcessor
 
-  attr_reader :track, :source_window, :colors_attrs, :colors_windows, :colors_world_positions, :colors_track_positions
+  attr_reader :track, :colors, :colors_world_positions, :colors_track_positions
 
-  def initialize(track, source_window, colors_attrs, colors_windows)
+  def initialize(track, colors)
     @track = track
-    @source_window = source_window
-    @colors_attrs = colors_attrs
-    @colors_windows = colors_windows || {}
+    @colors = colors
 
-    colors = colors_attrs.keys
-    @colors_world_positions = Hash[colors.map { |color| [color, nil] }]
-    @colors_track_positions = Hash[colors.map { |color| [color, nil] }]
+    color_names = colors.map(&:name)
+    @colors_world_positions = Hash[color_names.map { |color| [color, nil] }]
+    @colors_track_positions = Hash[color_names.map { |color| [color, nil] }]
+
   end
 
   def handle_image(image)
-    result = image.clone
-    hsv = image.BGR2HSV
+    @dirty_colors = []
 
-    dirty_colors = []
+    colors.each do |color|
+      hough = color.map(image).hough_circles CV_HOUGH_GRADIENT, 2, 5, 200, 40
+      hough = hough.to_a.reject { |circle| circle.radius > track.car_radius_world * 1.5 }
 
-    colors_attrs.each do |color, color_attrs|
-      color_map = hsv.in_range(color_attrs[:low], color_attrs[:high]).dilate(nil, 2)
-      color_window = colors_windows[color]
+      if hough.size > 0
+        circle = hough.first
+        new_world_position = circle.center
 
-      if color_window
-        color_window.show color_map
-      else
-        hough = color_map.hough_circles CV_HOUGH_GRADIENT, 2, 5, 200, 40
-        hough = hough.to_a.reject { |circle| circle.radius > track.car_radius_world * 1.5 }
-        if hough.size > 0
-          circle = hough.first
-          new_world_position = circle.center
+        on_track = track.inside? circle.center
+        if on_track
+          previous_world_position = colors_world_positions[color]
+          new_track_position = track.position_from_world new_world_position
 
-          on_track = track.inside? circle.center
-          if on_track
-            previous_world_position = colors_world_positions[color]
-            new_track_position = track.position_from_world new_world_position
-
-            if previous_world_position.nil?
-              dirty_colors << [color, new_track_position]
-            else
-              delta_x = (new_world_position.x - previous_world_position.x).abs
-              delta_y = (new_world_position.y - previous_world_position.y).abs
-              delta = Math.sqrt(delta_x + delta_y)
-              dirty_colors << [color, new_track_position] if delta > 4
-            end
-
-            cv_color = CvColor::const_get color.capitalize
-            result.circle! new_world_position, track.car_radius_world, thickness: 3, color: cv_color
+          if previous_world_position.nil?
+            mark_dirty color, new_world_position, new_track_position
           else
-            previous_track_position = colors_track_positions[color]
-            dirty_colors << [color, nil] unless previous_track_position.nil?
-            result.circle! new_world_position, track.car_radius_world, thickness: 1, color: cv_color
+            delta_x = (new_world_position.x - previous_world_position.x).abs
+            delta_y = (new_world_position.y - previous_world_position.y).abs
+            delta = Math.sqrt(delta_x + delta_y)
+            mark_dirty color, new_world_position, new_track_position if delta > 4
           end
+        else
+          previous_track_position = colors_track_positions[color]
+          mark_dirty color, new_world_position, nil unless previous_track_position.nil?
         end
       end
     end
 
-    track.render result
-    source_window.show result
+    @dirty_colors
+  end
 
-    dirty_colors
+  private
+
+  def mark_dirty(color, world_position, track_position)
+    colors_world_positions[color] = world_position
+    colors_track_positions[color] = track_position
+    @dirty_colors << [color.name, track_position]
   end
 end
