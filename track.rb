@@ -1,6 +1,20 @@
 require_relative 'segment'
 
 class Track
+  Postition = Struct.new :p, :d do
+    def segment_index
+      p.floor
+    end
+
+    def to_segment_local
+      Postition.new p.modulo(1), d
+    end
+
+    def to_track_at(index)
+      Postition.new (index + p), d
+    end
+  end
+
   attr_reader :segments, :car_radius_world
 
   CAR_RADIUS_TRACK = 0.08
@@ -30,14 +44,12 @@ class Track
     index = segments.find_index { |segment| segment.inside? point }
     return nil unless index
 
-    segment_progress, drift = segments[index].position_from_world point
-    progress = index + segment_progress
-
-    [progress, drift]
+    segment_position = segments[index].position_from_world point
+    segment_position.to_track_at index
   end
 
   def world_from_position(position)
-    progress = position.first
-    segments[progress.floor].world_from_position position
+    segment = segments[position.segment_index]
+    segment.world_from_position position.to_segment_local
   end
 end
