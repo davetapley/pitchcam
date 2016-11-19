@@ -10,10 +10,11 @@ class ImageProcessor
     @colors_world_positions = Hash[color_names.map { |color| [color, nil] }]
     @colors_track_positions = Hash[color_names.map { |color| [color, nil] }]
 
+    @dirty_start = nil
   end
 
   def handle_image(image)
-    @dirty_colors = []
+    @dirty_colors = [] if @dirty_start.nil?
 
     colors.each do |color|
       hough = color.map(image).hough_circles CV_HOUGH_GRADIENT, 2, 5, 200, 40
@@ -43,7 +44,19 @@ class ImageProcessor
       end
     end
 
-    @dirty_colors
+    if @dirty_colors.size > 0
+      @dirty_start ||= Time.now
+
+      dirty_time = Time.now - @dirty_start
+      if dirty_time > 2.0
+        @dirty_start = nil
+        return @dirty_colors
+      else
+        return []
+      end
+    else
+      return []
+    end
   end
 
   private
