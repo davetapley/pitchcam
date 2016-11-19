@@ -12,15 +12,10 @@ Segment = Struct.new :index, :world_origin, :world_transform do
   end
 
   def inside?(point)
-    world_scale = world_transform.scale
+    local_point = world_to_local point
 
-    x_lo = (0 * world_scale) + world_origin.x
-    x_hi = (0.7 * world_scale) + world_origin.x
-    return unless x_lo < point.x && point.x < x_hi
-
-    y_lo = (0 * world_scale) + world_origin.y
-    y_hi = (1 * world_scale) + world_origin.y
-    y_lo < point.y && point.y < y_hi
+    return unless 0 < local_point.x && local_point.x < 0.7
+    0 < local_point.y && local_point.y < 1
   end
 
   def next_world_origin
@@ -29,9 +24,9 @@ Segment = Struct.new :index, :world_origin, :world_transform do
   end
 
   def position_from_world(point)
-    world_scale = world_transform.scale
-    p = (point.y - world_origin.y) / world_scale # progress
-    d = ((point.x - world_origin.x) / world_scale) / WIDTH # drift
+    local_point = world_to_local point
+    p = local_point.y # progress
+    d = local_point.x / WIDTH # drift
     Track::Postition.new p, d
   end
 
@@ -41,6 +36,13 @@ Segment = Struct.new :index, :world_origin, :world_transform do
   end
 
   private
+
+  def world_to_local(point)
+    world_scale = world_transform.scale
+    x = (point.x - world_origin.x) / world_scale
+    y = (point.y - world_origin.y) / world_scale
+    CvPoint2D32f.new x, y
+  end
 
   def local_to_world(point)
     world_scale = world_transform.scale
