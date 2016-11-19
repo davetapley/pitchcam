@@ -1,38 +1,46 @@
-Segment = Struct.new :index, :world_origin, :world_transform do
-  WIDTH = 0.63
+class Segment
+
+  attr_reader  :index, :world_origin, :world_transform, :tile, :bottom_left_world
+
+  def initialize(index, world_origin, world_transform)
+    @index = index
+    @world_origin = world_origin
+    @world_transform = world_transform
+    @tile = Straight.new
+    @bottom_left_world = CvPoint2D32f.new 0, 1
+  end
+
   def render_to(canvas)
-    p0 = CvPoint2D32f.new 0, 0
-    p1 = CvPoint2D32f.new WIDTH, 0
-    p2 = CvPoint2D32f.new WIDTH, 1
-    p3 = CvPoint2D32f.new 0, 1
-    [[p0, p1], [p1, p2], [p2, p3], [p3, p0]].each do |from, to|
-      canvas.line! local_to_world(from), local_to_world(to), thickness: 1, color:CvColor::White
+    tile.outline.each do |type, *points|
+      case type
+      when :line
+        from = local_to_world points.first
+        to = local_to_world points.last
+        canvas.line! from, to, thickness: 1, color:CvColor::White
+      else
+        raise "Can't render #{type}"
+      end
+
     end
-    canvas.put_text!(index.to_s, local_to_world(p3), CvFont.new(:simplex), CvColor::White)
+    canvas.put_text!(index.to_s, bottom_left_world, CvFont.new(:simplex), CvColor::White)
   end
 
   def inside?(point)
     local_point = world_to_local point
-
-    return unless 0 < local_point.x && local_point.x < 0.7
-    0 < local_point.y && local_point.y < 1
+    tile.inside? local_point
   end
 
   def next_world_origin
-    p = CvPoint2D32f.new 0, 1
-    local_to_world p
+    local_to_world tile.next_world_origin
   end
 
   def position_from_world(point)
     local_point = world_to_local point
-    p = local_point.y # progress
-    d = local_point.x / WIDTH # drift
-    Track::Postition.new p, d
+    tile.position_from_local local_point
   end
 
   def world_from_position(position)
-    local_point = CvPoint2D32f.new (position.d * WIDTH), position.p
-    local_to_world local_point
+    local_to_world tile.local_from_position(postition)
   end
 
   private
