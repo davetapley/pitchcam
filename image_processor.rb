@@ -23,6 +23,7 @@ class ImageProcessor
       if hough.size > 0
         circle = hough.first
         new_world_position = circle.center
+        #puts "#{color.name}\tworld\t#{new_world_position}"
 
         on_track = track.inside? circle.center
         if on_track
