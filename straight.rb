@@ -1,4 +1,6 @@
 class Straight
+  # Longest side in y axis
+
   WIDTH = 0.63
 
   def inside?(point)
