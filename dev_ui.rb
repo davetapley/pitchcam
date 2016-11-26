@@ -7,8 +7,8 @@ module DevUI
         window.set_trackbar("h low", 255, hsv_low[0])  { |v| hsv_low[0] = v }
         window.set_trackbar("h high", 255, hsv_high[0]) { |v| hsv_high[0] = v }
 
-        window.set_trackbar("s low", 255, hsv_low[1]) { |v| attrs[:low][1] = v }
-        window.set_trackbar("s high", 255, hsv_high[1]) { |v| attrs[:high][1] = v }
+        window.set_trackbar("s low", 255, hsv_low[1]) { |v| hsv_low[1] = v }
+        window.set_trackbar("s high", 255, hsv_high[1]) { |v| hsv_high[1] = v }
 
         window.set_trackbar("v low", 255, hsv_low[2]) { |v| hsv_low[2] = v }
         window.set_trackbar("v high", 255, hsv_high[2]) { |v| hsv_high[2] = v }
