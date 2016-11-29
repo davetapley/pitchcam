@@ -31,12 +31,20 @@ class Track
     @car_radius_world = CAR_RADIUS_TRACK * world_transform.scale
 
     start_origin = world_transform.origin
-    @segments = [Segment.new(0, start_origin, world_transform, Straight)]
+    angle = 0
+    @segments = [Segment.new(0, start_origin, angle, world_transform, Straight)]
 
-    tiles = [Straight, Corner]
+    tiles = [Corner, Straight, Corner, Straight, Corner, Straight, Corner]
     tiles.each_with_index do |tile, index|
-      origin = segments.last.next_world_origin
-      segments << Segment.new(index + 1, origin, world_transform, tile)
+      prev_segment = segments.last
+
+      origin = prev_segment.next_world_origin
+      angle = (angle + prev_segment.next_angle) % (Math::PI * 2)
+
+      segment = Segment.new index + 1, origin, angle, world_transform, tile
+      segments << segment
+
+      puts "#{segment.world_to_local origin}"
     end
   end
 

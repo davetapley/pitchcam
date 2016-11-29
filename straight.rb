@@ -8,7 +8,7 @@ class Straight
     0 < point.x && point.x < WIDTH && 0 < point.y && point.y < HEIGHT
   end
 
-  def next_world_origin
+  def next_local_origin
     CvPoint2D32f.new 0, HEIGHT
   end
 
@@ -20,6 +20,10 @@ class Straight
 
   def local_from_position(position)
     CvPoint2D32f.new (position.d * WIDTH), (position.p * HEIGHT)
+  end
+
+  def next_angle
+    0
   end
 
   def outline

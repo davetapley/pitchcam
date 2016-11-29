@@ -19,8 +19,12 @@ class Corner
     true
   end
 
-  def next_world_origin
-    CvPoint2D32f.new EDGE, 0
+  def next_local_origin
+    CvPoint2D32f.new X_LOW, INNER_RADIUS
+  end
+
+  def next_angle
+    -(Math::PI / 2.0)
   end
 
   def position_from_local(point)
@@ -60,8 +64,8 @@ class Corner
     [
       [:line, p0, p1],
       [:line, p2, p3],
-      [:arc, p1, p2, pO], # outer
-      [:arc, p0, p3, pO]  # inner
+      [:arc, p1, pO,  INNER_RADIUS + WIDTH], # outer
+      [:arc, p0, pO, INNER_RADIUS]  # inner
     ]
   end
 

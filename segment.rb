@@ -3,11 +3,12 @@ require_relative 'corner'
 
 class Segment
 
-  attr_reader  :index, :world_origin, :world_transform, :tile, :bottom_left_world
+  attr_reader :index, :world_origin, :angle, :world_transform, :tile, :bottom_left_world
 
-  def initialize(index, world_origin, world_transform, tile_class)
+  def initialize(index, world_origin, angle, world_transform, tile_class)
     @index = index
     @world_origin = world_origin
+    @angle = angle
     @world_transform = world_transform
     @tile = tile_class.new
   end
@@ -16,7 +17,7 @@ class Segment
   def render_outline_to(canvas)
     render_to canvas, tile.outline
 
-    label_position = CvPoint.new world_origin.x, world_origin.y + 25
+    label_position = local_to_world CvPoint2D32f.new 0.5, 0.5
     canvas.put_text!(index.to_s, label_position, CvFont.new(:simplex), CvColor::White)
   end
 
@@ -30,7 +31,11 @@ class Segment
   end
 
   def next_world_origin
-    local_to_world tile.next_world_origin
+    local_to_world tile.next_local_origin
+  end
+
+  def next_angle
+    tile.next_angle
   end
 
   def position_from_world(point)
@@ -42,35 +47,47 @@ class Segment
     local_to_world tile.local_from_position(position)
   end
 
-  private
-
   def world_to_local(point)
+    cos_a = Math.cos angle
+    sin_a = Math.sin angle
+
     world_scale = world_transform.scale
     x = (point.x - world_origin.x) / world_scale
     y = (point.y - world_origin.y) / world_scale
-    CvPoint2D32f.new x, y
+
+    x_r = (x * cos_a) - (y * sin_a)
+    y_r = (y * cos_a) + (x * sin_a)
+
+    CvPoint2D32f.new x_r, y_r
   end
 
   def local_to_world(point)
+    cos_a = Math.cos -angle
+    sin_a = Math.sin -angle
+
+    x_r = (point.x * cos_a) - (point.y * sin_a)
+    y_r = (point.y * cos_a) + (point.x * sin_a)
+
     world_scale = world_transform.scale
-    x = (point.x * world_scale) + world_origin.x
-    y = (point.y * world_scale) + world_origin.y
+    x = (x_r * world_scale) + world_origin.x
+    y = (y_r * world_scale) + world_origin.y
     CvPoint.new x, y
   end
 
   def render_to(canvas, shapes, color = CvColor::White)
     shapes.each do |type, *points|
       from = local_to_world points[0]
-      to = local_to_world points[1]
 
       case type
       when :line
+        to = local_to_world points[1]
         canvas.line! from, to, thickness: 1, color: color
       when :arc
-        origin = local_to_world points[2]
-        axes = CvSize.new (from.x - to.x).abs, (from.y - to.y).abs
-        angle = 0
-        canvas.ellipse! origin, axes, angle, 0, 90, thickness: 1, color: color
+        origin = local_to_world points[1]
+        radius = points[2] * world_transform.scale
+        axes = CvSize.new radius, radius
+        angle_deg = (-angle / Math::PI) * 180
+        canvas.ellipse! origin, axes, angle_deg, 0, 90, thickness: 1, color: color
       else
         raise "Can't render #{type}"
       end
