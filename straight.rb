@@ -2,7 +2,7 @@ class Straight
   # Longest side in y axis
 
   WIDTH = 1
-  HEIGHT = 1.59
+  HEIGHT = 1.64
 
   def inside?(point)
     0 < point.x && point.x < WIDTH && 0 < point.y && point.y < HEIGHT

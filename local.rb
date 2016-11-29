@@ -17,14 +17,14 @@ config = Config.new
 include DevUI
 
 source_window = GUI::Window.new 'source'
-add_world_transform_trackbars source_window, config.world_transform
+#add_world_transform_trackbars source_window, config.world_transform
 
 track = Track.new config.world_transform
 image_processor = ImageProcessor.new track, config.colors
 race = Race.new track, config.color_names
 
 # 864 x 480
-capture = CvCapture::open 0
+capture = CvCapture::open 1
 
 loop do
   image = capture.query

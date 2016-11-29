@@ -32,11 +32,11 @@ class Track
 
     start_origin = world_transform.origin
     @segments = [Segment.new(0, start_origin, world_transform, Straight)]
-    prev_segment = segments.first
 
-    1.times.each_with_index do |index|
-      origin = prev_segment.next_world_origin
-      segments << Segment.new(index + 1, origin, world_transform, Corner)
+    tiles = [Straight, Corner]
+    tiles.each_with_index do |tile, index|
+      origin = segments.last.next_world_origin
+      segments << Segment.new(index + 1, origin, world_transform, tile)
     end
   end
 
