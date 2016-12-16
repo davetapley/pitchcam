@@ -1,0 +1,36 @@
+<!doctype html>
+
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>PitchCam</title>
+	</head>
+	<body>
+		<div id="my_camera"></div>
+		<img id="dev-image" src="dev_image.png" alt="dev image">
+
+		<script type="text/javascript" src="../webcam.min.js"></script>
+		<script language="JavaScript">
+Webcam.set({
+	width: 1280,
+	height: 720,
+	image_format: 'jpeg',
+	jpeg_quality: 100
+});
+Webcam.attach( '#my_camera' );
+
+function take_snapshot() {
+	Webcam.snap( function(data_uri) {
+		Webcam.upload( data_uri, 'image', function() {
+      document.getElementById("dev-image").src = "dev_image.png?" + (new Date()).getTime();
+			take_snapshot();
+		})
+	} );
+}
+
+Webcam.on( 'live', function() {
+	take_snapshot();
+});
+		</script>
+	</body>
+</html>
