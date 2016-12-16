@@ -7,8 +7,8 @@ module DevUI
         window.set_trackbar("h low", 255, hsv_low[0])  { |v| hsv_low[0] = v }
         window.set_trackbar("h high", 255, hsv_high[0]) { |v| hsv_high[0] = v }
 
-        window.set_trackbar("s low", 255, hsv_low[1]) { |v| attrs[:low][1] = v }
-        window.set_trackbar("s high", 255, hsv_high[1]) { |v| attrs[:high][1] = v }
+        window.set_trackbar("s low", 255, hsv_low[1]) { |v| hsv_low[1] = v }
+        window.set_trackbar("s high", 255, hsv_high[1]) { |v| hsv_high[1] = v }
 
         window.set_trackbar("v low", 255, hsv_low[2]) { |v| hsv_low[2] = v }
         window.set_trackbar("v high", 255, hsv_high[2]) { |v| hsv_high[2] = v }
@@ -27,15 +27,20 @@ module DevUI
 
   def render_dev_overlay(race, window, image, dirty_colors, colors, color_window_on)
     track = race.track
-
     result = image.clone
+
+    track.render_outline_to result
 
     race.colors_entrants.each do |color, entrant|
       next unless entrant.on_track?
       cv_color = CvColor::const_get color.capitalize
       thickness = entrant.is_turn ? 3 : 1
       world_position = track.world_from_position entrant.track_position
+      #puts "#{color} at #{entrant.track_position}"
       result.circle! world_position, track.car_radius_world, thickness: thickness, color: cv_color
+      #puts "#{color}\tcalc\t#{world_position}"
+
+      track.render_progress_to result, cv_color, entrant.track_position
     end
 
     if color_window_on
@@ -44,7 +49,6 @@ module DevUI
       end
     end
 
-    track.render_to result
     window.show result
   end
 end

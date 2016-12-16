@@ -14,8 +14,8 @@ class Config
 
     @color_window_on = @config['color_window_on']
 
-    origin = CvPoint.new 212, 57
-    scale = 172
+    origin = CvPoint.new 356, 178
+    scale = 93
     rotation = 0
     @world_transform = WorldTransform.new origin, scale, rotation
 

@@ -24,7 +24,7 @@ image_processor = ImageProcessor.new track, config.colors
 race = Race.new track, config.color_names
 
 # 864 x 480
-capture = CvCapture::open 0
+capture = CvCapture::open 1
 
 loop do
   image = capture.query
