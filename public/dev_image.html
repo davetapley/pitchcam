@@ -1,0 +1,20 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>PitchCam</title>
+  </head>
+  <body>
+    <img id="dev-image" src="dev_image.png" alt="dev image">
+
+    <script language="JavaScript">
+function update() {
+  document.getElementById("dev-image").src = "dev_image.png?" + (new Date()).getTime();
+  setTimeout(update, 500);
+};
+update();
+    </script>
+  </body>
+</html>
+

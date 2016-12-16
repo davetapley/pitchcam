@@ -7,7 +7,6 @@
 	</head>
 	<body>
 		<div id="my_camera"></div>
-		<img id="dev-image" src="dev_image.png" alt="dev image">
 
 		<script type="text/javascript" src="../webcam.min.js"></script>
 		<script language="JavaScript">
@@ -22,7 +21,6 @@ Webcam.attach( '#my_camera' );
 function take_snapshot() {
 	Webcam.snap( function(data_uri) {
 		Webcam.upload( data_uri, 'image', function() {
-      document.getElementById("dev-image").src = "dev_image.png?" + (new Date()).getTime();
 			take_snapshot();
 		})
 	} );
